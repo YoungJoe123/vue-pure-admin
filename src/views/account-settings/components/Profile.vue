@@ -2,7 +2,7 @@
 import { formUpload } from "@/api/mock";
 import { message } from "@/utils/message";
 import { onMounted, reactive, ref } from "vue";
-import { type UserInfo, getMine } from "@/api/user";
+import { type UserInfo, getMine, updateMine } from "@/api/user";
 import type { FormInstance, FormRules } from "element-plus";
 import ReCropperPreview from "@/components/ReCropperPreview";
 import { createFormData, deviceDetection } from "@pureadmin/utils";
@@ -88,10 +88,16 @@ const handleSubmitImage = () => {
 
 // 更新信息
 const onSubmit = async (formEl: FormInstance) => {
-  await formEl.validate((valid, fields) => {
+  await formEl.validate(async (valid, fields) => {
     if (valid) {
-      console.log(userInfos);
-      message("更新信息成功", { type: "success" });
+      const { code } = await updateMine({
+        nickname: userInfos.nickname,
+        email: userInfos.email,
+        phone: userInfos.phone
+      });
+      if (code === 0) {
+        message("更新信息成功", { type: "success" });
+      }
     } else {
       console.log("error submit!", fields);
     }
