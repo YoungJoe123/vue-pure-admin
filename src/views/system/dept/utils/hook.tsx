@@ -2,7 +2,7 @@ import dayjs from "dayjs";
 import editForm from "../form.vue";
 import { handleTree } from "@/utils/tree";
 import { message } from "@/utils/message";
-import { getDeptList } from "@/api/system";
+import { getDeptList, addDept, updateDept, deleteDept } from "@/api/system";
 import { usePublicHooks } from "../../hooks";
 import { addDialog } from "@/components/ReDialog";
 import { reactive, ref, onMounted, h } from "vue";
@@ -74,27 +74,23 @@ export function useDept() {
 
   async function onSearch() {
     loading.value = true;
-    const { code, data } = await getDeptList(); // 这里是返回一维数组结构，前端自行处理成树结构，返回格式要求：唯一id加父节点parentId，parentId取父节点id
+    const { code, data } = await getDeptList();
     if (code === 0) {
       let newData = data;
       if (!isAllEmpty(form.name)) {
-        // 前端搜索部门名称
         newData = newData.filter(item => item.name.includes(form.name));
       }
       if (!isAllEmpty(form.status)) {
-        // 前端搜索状态
         newData = newData.filter(item => item.status === form.status);
       }
-      dataList.value = handleTree(newData); // 处理成树结构
+      dataList.value = handleTree(newData);
     }
-
     setTimeout(() => {
       loading.value = false;
     }, 500);
   }
 
   function formatHigherDeptOptions(treeList) {
-    // 根据返回数据的status字段值判断追加是否禁用disabled字段，返回处理后的树结构，用于上级部门级联选择器的展示（实际开发中也是如此，不可能前端需要的每个字段后端都会返回，这时需要前端自行根据后端返回的某些字段做逻辑处理）
     if (!treeList || !treeList.length) return;
     const newTreeList = [];
     for (let i = 0; i < treeList.length; i++) {
@@ -134,19 +130,26 @@ export function useDept() {
           message(`您${title}了部门名称为${curData.name}的这条数据`, {
             type: "success"
           });
-          done(); // 关闭弹框
-          onSearch(); // 刷新表格数据
+          done();
+          onSearch();
         }
-        FormRef.validate(valid => {
+        FormRef.validate(async valid => {
           if (valid) {
-            console.log("curData", curData);
-            // 表单规则校验通过
+            const payload = {
+              name: curData.name,
+              parentId: curData.parentId,
+              sort: curData.sort,
+              status: curData.status
+            };
             if (title === "新增") {
-              // 实际开发先调用新增接口，再进行下面操作
-              chores();
+              const { code } = await addDept(payload);
+              if (code === 0) chores();
             } else {
-              // 实际开发先调用修改接口，再进行下面操作
-              chores();
+              const { code } = await updateDept({
+                id: (row as any)?.id,
+                ...payload
+              });
+              if (code === 0) chores();
             }
           }
         });
@@ -154,9 +157,12 @@ export function useDept() {
     });
   }
 
-  function handleDelete(row) {
-    message(`您删除了部门名称为${row.name}的这条数据`, { type: "success" });
-    onSearch();
+  async function handleDelete(row) {
+    const { code } = await deleteDept(row.id);
+    if (code === 0) {
+      message(`已删除部门名称为${row.name}的这条数据`, { type: "success" });
+      onSearch();
+    }
   }
 
   onMounted(() => {
@@ -168,13 +174,9 @@ export function useDept() {
     loading,
     columns,
     dataList,
-    /** 搜索 */
     onSearch,
-    /** 重置 */
     resetForm,
-    /** 新增、修改部门 */
     openDialog,
-    /** 删除部门 */
     handleDelete,
     handleSelectionChange
   };

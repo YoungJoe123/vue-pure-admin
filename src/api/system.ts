@@ -85,3 +85,49 @@ export const getRoleMenu = (data?: object) => {
 export const getRoleMenuIds = (data?: object) => {
   return http.request<Result>("post", "/admin/role-menu-ids", { data });
 };
+
+/** 用户管理-新增 */
+export const addUser = (data?: object) =>
+  http.request<Result>("post", "/admin/user/add", { data });
+/** 用户管理-修改 */
+export const updateUser = (data?: object) =>
+  http.request<Result>("put", "/admin/user/update", { data });
+/** 用户管理-删除 */
+export const deleteUser = (id: number) =>
+  http.request<Result>("delete", `/admin/user/${id}`);
+/** 用户管理-重置密码 */
+export const resetUserPwd = (data?: object) =>
+  http.request<Result>("put", "/admin/user/reset-pwd", { data });
+
+/** 角色管理-新增 */
+export const addRole = (data?: object) =>
+  http.request<Result>("post", "/admin/role/add", { data });
+/** 角色管理-修改 */
+export const updateRole = (data?: object) =>
+  http.request<Result>("put", "/admin/role/update", { data });
+/** 角色管理-删除 */
+export const deleteRole = (id: number) =>
+  http.request<Result>("delete", `/admin/role/${id}`);
+/** 角色管理-保存菜单权限 */
+export const saveRoleMenu = (data?: object) =>
+  http.request<Result>("put", "/admin/role/menu", { data });
+
+/** 菜单管理-新增 */
+export const addMenu = (data?: object) =>
+  http.request<Result>("post", "/admin/menu/add", { data });
+/** 菜单管理-修改 */
+export const updateMenu = (data?: object) =>
+  http.request<Result>("put", "/admin/menu/update", { data });
+/** 菜单管理-删除 */
+export const deleteMenu = (id: number) =>
+  http.request<Result>("delete", `/admin/menu/${id}`);
+
+/** 部门管理-新增 */
+export const addDept = (data?: object) =>
+  http.request<Result>("post", "/admin/dept/add", { data });
+/** 部门管理-修改 */
+export const updateDept = (data?: object) =>
+  http.request<Result>("put", "/admin/dept/update", { data });
+/** 部门管理-删除 */
+export const deleteDept = (id: number) =>
+  http.request<Result>("delete", `/admin/dept/${id}`);

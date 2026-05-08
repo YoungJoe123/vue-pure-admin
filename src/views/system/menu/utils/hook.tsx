@@ -1,7 +1,7 @@
 import editForm from "../form.vue";
 import { handleTree } from "@/utils/tree";
 import { message } from "@/utils/message";
-import { getMenuList } from "@/api/system";
+import { getMenuList, addMenu, updateMenu, deleteMenu } from "@/api/system";
 import { transformI18n } from "@/plugins/i18n";
 import { addDialog } from "@/components/ReDialog";
 import { reactive, ref, onMounted, h } from "vue";
@@ -73,7 +73,7 @@ export function useMenu() {
     },
     {
       label: "权限标识",
-      prop: "auths"
+      prop: "perms"
     },
     {
       label: "排序",
@@ -106,18 +106,16 @@ export function useMenu() {
 
   async function onSearch() {
     loading.value = true;
-    const { code, data } = await getMenuList(); // 这里是返回一维数组结构，前端自行处理成树结构，返回格式要求：唯一id加父节点parentId，parentId取父节点id
+    const { code, data } = await getMenuList();
     if (code === 0) {
       let newData = data;
       if (!isAllEmpty(form.title)) {
-        // 前端搜索菜单名称
         newData = newData.filter(item =>
           transformI18n(item.title).includes(form.title)
         );
       }
-      dataList.value = handleTree(newData); // 处理成树结构
+      dataList.value = handleTree(newData);
     }
-
     setTimeout(() => {
       loading.value = false;
     }, 500);
@@ -153,7 +151,7 @@ export function useMenu() {
           enterTransition: row?.enterTransition ?? "",
           leaveTransition: row?.leaveTransition ?? "",
           activePath: row?.activePath ?? "",
-          auths: row?.auths ?? "",
+          auths: (row as any)?.perms ?? "",
           frameSrc: row?.frameSrc ?? "",
           frameLoading: row?.frameLoading ?? true,
           keepAlive: row?.keepAlive ?? false,
@@ -175,23 +173,36 @@ export function useMenu() {
         function chores() {
           message(
             `您${title}了菜单名称为${transformI18n(curData.title)}的这条数据`,
-            {
-              type: "success"
-            }
+            { type: "success" }
           );
-          done(); // 关闭弹框
-          onSearch(); // 刷新表格数据
+          done();
+          onSearch();
         }
-        FormRef.validate(valid => {
+        FormRef.validate(async valid => {
           if (valid) {
-            console.log("curData", curData);
-            // 表单规则校验通过
+            const payload = {
+              title: curData.title,
+              path: curData.path,
+              name: curData.name || null,
+              component: curData.component || null,
+              icon: curData.icon || null,
+              rank: curData.rank,
+              parentId: curData.parentId,
+              menuType: curData.menuType,
+              perms: curData.auths || null,
+              showLink: curData.showLink ? 1 : 0,
+              keepAlive: curData.keepAlive ? 1 : 0,
+              status: 0
+            };
             if (title === "新增") {
-              // 实际开发先调用新增接口，再进行下面操作
-              chores();
+              const { code } = await addMenu(payload);
+              if (code === 0) chores();
             } else {
-              // 实际开发先调用修改接口，再进行下面操作
-              chores();
+              const { code } = await updateMenu({
+                id: (row as any)?.id,
+                ...payload
+              });
+              if (code === 0) chores();
             }
           }
         });
@@ -199,11 +210,14 @@ export function useMenu() {
     });
   }
 
-  function handleDelete(row) {
-    message(`您删除了菜单名称为${transformI18n(row.title)}的这条数据`, {
-      type: "success"
-    });
-    onSearch();
+  async function handleDelete(row) {
+    const { code } = await deleteMenu(row.id);
+    if (code === 0) {
+      message(`已删除菜单名称为${transformI18n(row.title)}的这条数据`, {
+        type: "success"
+      });
+      onSearch();
+    }
   }
 
   onMounted(() => {
@@ -215,13 +229,9 @@ export function useMenu() {
     loading,
     columns,
     dataList,
-    /** 搜索 */
     onSearch,
-    /** 重置 */
     resetForm,
-    /** 新增、修改菜单 */
     openDialog,
-    /** 删除菜单 */
     handleDelete,
     handleSelectionChange
   };
