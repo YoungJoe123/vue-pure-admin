@@ -128,7 +128,8 @@ export function useUser(tableRef: Ref, treeRef: Ref) {
       label: "手机号码",
       prop: "phone",
       minWidth: 90,
-      formatter: ({ phone }) => hideTextAtIndex(phone, { start: 3, end: 6 })
+      formatter: ({ phone }) =>
+        phone ? hideTextAtIndex(phone, { start: 3, end: 6 }) : ""
     },
     {
       label: "状态",
@@ -154,7 +155,7 @@ export function useUser(tableRef: Ref, treeRef: Ref) {
       minWidth: 90,
       prop: "createTime",
       formatter: ({ createTime }) =>
-        dayjs(createTime).format("YYYY-MM-DD HH:mm:ss")
+        createTime ? dayjs(createTime).format("YYYY-MM-DD HH:mm:ss") : ""
     },
     {
       label: "操作",
@@ -229,10 +230,12 @@ export function useUser(tableRef: Ref, treeRef: Ref) {
   }
 
   async function handleDelete(row) {
-    const { code } = await deleteUser(row.id);
+    const { code, msg } = await deleteUser(row.id);
     if (code === 0) {
       message(`已删除用户编号为${row.id}的这条数据`, { type: "success" });
       onSearch();
+    } else {
+      message(msg || "删除失败", { type: "error" });
     }
   }
 
@@ -276,8 +279,6 @@ export function useUser(tableRef: Ref, treeRef: Ref) {
     if (code === 0) {
       dataList.value = data.list;
       pagination.total = data.total;
-      pagination.pageSize = data.pageSize;
-      pagination.currentPage = data.currentPage;
     }
     setTimeout(() => {
       loading.value = false;
@@ -346,7 +347,7 @@ export function useUser(tableRef: Ref, treeRef: Ref) {
         FormRef.validate(async valid => {
           if (valid) {
             if (title === "新增") {
-              const { code } = await addUser({
+              const { code, msg } = await addUser({
                 username: curData.username,
                 password: curData.password,
                 nickname: curData.nickname,
@@ -356,8 +357,9 @@ export function useUser(tableRef: Ref, treeRef: Ref) {
                 status: curData.status
               });
               if (code === 0) chores();
+              else message(msg || "新增失败", { type: "error" });
             } else {
-              const { code } = await updateUser({
+              const { code, msg } = await updateUser({
                 id: curData.id,
                 nickname: curData.nickname,
                 email: curData.email,
@@ -366,6 +368,7 @@ export function useUser(tableRef: Ref, treeRef: Ref) {
                 status: curData.status
               });
               if (code === 0) chores();
+              else message(msg || "修改失败", { type: "error" });
             }
           }
         });
@@ -460,7 +463,7 @@ export function useUser(tableRef: Ref, treeRef: Ref) {
       beforeSure: done => {
         ruleFormRef.value.validate(async valid => {
           if (valid) {
-            const { code } = await resetUserPwd({
+            const { code, msg } = await resetUserPwd({
               id: row.id,
               newPwd: pwdForm.newPwd
             });
@@ -470,6 +473,8 @@ export function useUser(tableRef: Ref, treeRef: Ref) {
               });
               done();
               onSearch();
+            } else {
+              message(msg || "重置密码失败", { type: "error" });
             }
           }
         });

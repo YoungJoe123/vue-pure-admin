@@ -84,7 +84,7 @@ export const useUserStore = defineStore("pure-user", {
               setToken(data.data);
               resolve(data);
             } else {
-              reject(data.message);
+              reject(data.msg || "登录失败");
             }
           })
           .catch(error => {

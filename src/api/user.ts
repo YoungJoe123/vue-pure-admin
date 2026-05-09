@@ -2,7 +2,7 @@ import { http } from "@/utils/http";
 
 export type UserResult = {
   code: number;
-  message: string;
+  msg: string;
   data: {
     /** 头像 */
     avatar: string;
@@ -25,7 +25,7 @@ export type UserResult = {
 
 export type RefreshTokenResult = {
   code: number;
-  message: string;
+  msg: string;
   data: {
     /** `token` */
     accessToken: string;
@@ -53,7 +53,7 @@ export type UserInfo = {
 
 export type UserInfoResult = {
   code: number;
-  message: string;
+  msg: string;
   data: UserInfo;
 };
 

@@ -324,8 +324,15 @@ function addAsyncRoutes(arrRoutes: Array<RouteRecordRaw>) {
     if (v?.children && v.children.length && !v.redirect)
       v.redirect = v.children[0].path;
     // 父级的name属性取值：如果子级存在且父级的name属性不存在，默认取第一个子级的name；如果子级存在且父级的name属性存在，取存在的name属性，会覆盖默认值（注意：测试中发现父级的name不能和子级name重复，如果重复会造成重定向无效（跳转404），所以这里给父级的name起名的时候后面会自动加上`Parent`，避免重复）
-    if (v?.children && v.children.length && !v.name)
-      v.name = (v.children[0].name as string) + "Parent";
+    if (v?.children && v.children.length && !v.name) {
+      // 仅当路径未在静态路由中注册时才赋父级name，否则sidebar的router-link会因name未注册而报"No match"错误
+      const alreadyInStaticRoutes = router.options.routes[0]?.children?.some(
+        c => c.path === v.path
+      );
+      if (!alreadyInStaticRoutes) {
+        v.name = (v.children[0].name as string) + "Parent";
+      }
+    }
     if (v.meta?.frameSrc) {
       v.component = IFrame;
     } else {

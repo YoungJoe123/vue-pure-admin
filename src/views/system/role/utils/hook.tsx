@@ -217,21 +217,23 @@ export function useRole(treeRef: Ref) {
         FormRef.validate(async valid => {
           if (valid) {
             if (title === "新增") {
-              const { code } = await addRole({
+              const { code, msg } = await addRole({
                 name: curData.name,
                 code: curData.code,
                 remark: curData.remark,
                 status: 0
               });
               if (code === 0) chores();
+              else message(msg || "新增失败", { type: "error" });
             } else {
-              const { code } = await updateRole({
+              const { code, msg } = await updateRole({
                 id: row?.id,
                 name: curData.name,
                 code: curData.code,
                 remark: curData.remark
               });
               if (code === 0) chores();
+              else message(msg || "修改失败", { type: "error" });
             }
           }
         });

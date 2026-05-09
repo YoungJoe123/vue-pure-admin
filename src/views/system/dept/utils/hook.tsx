@@ -142,14 +142,16 @@ export function useDept() {
               status: curData.status
             };
             if (title === "新增") {
-              const { code } = await addDept(payload);
+              const { code, msg } = await addDept(payload);
               if (code === 0) chores();
+              else message(msg || "新增失败", { type: "error" });
             } else {
-              const { code } = await updateDept({
+              const { code, msg } = await updateDept({
                 id: (row as any)?.id,
                 ...payload
               });
               if (code === 0) chores();
+              else message(msg || "修改失败", { type: "error" });
             }
           }
         });

@@ -34,7 +34,7 @@ const pwdRules = reactive<FormRules>({
 async function submitPwd() {
   await pwdFormRef.value.validate(async valid => {
     if (!valid) return;
-    const { code, message: msg } = await changePassword({
+    const { code, msg } = await changePassword({
       oldPwd: pwdForm.oldPwd,
       newPwd: pwdForm.newPwd
     });
